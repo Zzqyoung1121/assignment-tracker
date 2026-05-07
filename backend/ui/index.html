@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>作业追踪</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue:        #2563eb;
+  --blue-dark:   #1d4ed8;
+  --blue-light:  #eff6ff;
+  --green:       #16a34a;
+  --green-light: #dcfce7;
+  --red:         #dc2626;
+  --red-light:   #fee2e2;
+  --amber:       #b45309;
+  --amber-light: #fef3c7;
+  --navy:        #0f172a;
+  --slate-700:   #334155;
+  --slate-500:   #64748b;
+  --slate-300:   #cbd5e1;
+  --slate-100:   #f1f5f9;
+  --slate-50:    #f8fafc;
+  --white:       #ffffff;
+  --shadow-sm:   0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:   0 4px 16px rgba(0,0,0,.08);
+  --r:           12px;
+  --r-sm:        8px;
+  --r-pill:      999px;
+}
+
+body {
+  font-family: 'PingFang SC','Hiragino Sans GB','Microsoft YaHei','WenQuanYi Micro Hei',system-ui,sans-serif;
+  font-size: 15px;
+  background: var(--slate-100);
+  color: var(--slate-700);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* ── Tab Bar ── */
+.tab-bar {
+  display: flex;
+  background: var(--navy);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0 4px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 14px 2px 11px;
+  color: rgba(255,255,255,.45);
+  border: none;
+  background: none;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  position: relative;
+  letter-spacing: .03em;
+  transition: color .18s;
+}
+
+.tab-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 28px; height: 3px;
+  background: #60a5fa;
+  border-radius: 3px 3px 0 0;
+  transition: transform .2s ease;
+}
+
+.tab-btn.active { color: #fff; }
+.tab-btn.active::after { transform: translateX(-50%) scaleX(1); }
+
+/* ── Page Content ── */
+.tab-content { display: none; padding: 16px; }
+.tab-content.active { display: block; }
+
+/* ── Cards ── */
+.card {
+  background: var(--white);
+  border-radius: var(--r);
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--slate-500);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 16px;
+}
+
+/* ── Form ── */
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: var(--slate-700);
+  font-size: 14px;
+}
+
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--slate-300);
+  border-radius: var(--r-sm);
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--slate-700);
+  background: var(--white);
+  margin-bottom: 14px;
+  transition: border-color .15s, box-shadow .15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+}
+
+input[type="file"] {
+  width: 100%;
+  margin-bottom: 14px;
+  font-size: 14px;
+  color: var(--slate-500);
+}
+
+textarea { min-height: 100px; resize: vertical; }
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%2364748b' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: block;
+  width: 100%;
+  padding: 13px 16px;
+  border: none;
+  border-radius: var(--r-sm);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  margin-bottom: 10px;
+  min-height: 48px;
+  transition: background .15s, transform .1s, box-shadow .15s, color .15s;
+  letter-spacing: .01em;
+  text-align: center;
+}
+
+.btn:active { transform: scale(.98); }
+
+.btn-primary  { background: var(--blue); color: var(--white); }
+.btn-primary:hover { background: var(--blue-dark); box-shadow: 0 4px 14px rgba(37,99,235,.3); }
+
+.btn-success  { background: var(--green); color: var(--white); }
+.btn-success:hover { background: #15803d; }
+
+.btn-outline  { background: transparent; color: var(--blue); border: 1.5px solid var(--blue); }
+.btn-outline:hover { background: var(--blue-light); }
+
+.btn-danger   { background: transparent; color: var(--red); border: 1.5px solid var(--red); }
+.btn-danger:hover { background: var(--red-light); }
+
+.btn-ghost    { background: var(--slate-100); color: var(--slate-700); border: none; }
+.btn-ghost:hover { background: var(--slate-300); }
+
+.btn-sm {
+  display: inline-block;
+  width: auto;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--r-pill);
+  margin-bottom: 0;
+  min-height: unset;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s, color .15s;
+  letter-spacing: .01em;
+}
+
+.action-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.action-row .btn { flex: 1; margin-bottom: 0; }
+
+/* ── Status Badges ── */
+.badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+
+.badge-submitted { background: var(--green-light);  color: var(--green); }
+.badge-missing   { background: var(--red-light);    color: var(--red);   }
+.badge-pending   { background: var(--amber-light);  color: var(--amber); }
+
+/* ── Stat Card ── */
+.stat-card {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  border-radius: var(--r);
+  padding: 22px 20px 18px;
+  margin-bottom: 14px;
+  color: #fff;
+}
+
+.stat-numbers {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.stat-main  { font-size: 40px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
+.stat-denom { font-size: 20px; font-weight: 400; opacity: .6; }
+.stat-label { font-size: 13px; opacity: .75; margin-bottom: 14px; }
+
+.progress-track {
+  height: 6px;
+  background: rgba(255,255,255,.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #fbbf24;
+  border-radius: 3px;
+  transition: width .7s cubic-bezier(.25,.46,.45,.94);
+}
+
+/* ── Student Rows ── */
+.student-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--slate-100);
+  gap: 8px;
+}
+
+.student-row:last-child { border-bottom: none; }
+
+.s-name { font-size: 15px; font-weight: 500; }
+.s-num  { font-size: 12px; color: var(--slate-500); margin-top: 2px; }
+.s-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* ── Info Box ── */
+.info-box {
+  background: var(--slate-50);
+  border: 1px solid var(--slate-300);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--slate-500);
+  margin-bottom: 14px;
+  line-height: 1.75;
+}
+
+.info-box code {
+  background: var(--slate-100);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+}
+
+/* ── Thumbnail Grid ── */
+.thumb-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.thumb-grid img {
+  width: 76px; height: 76px;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Spinner / Empty ── */
+.spinner {
+  text-align: center;
+  padding: 24px 16px;
+  color: var(--slate-500);
+  font-size: 14px;
+}
+
+/* ── Messages ── */
+.msg { padding: 11px 14px; border-radius: var(--r-sm); margin-bottom: 10px; font-size: 14px; }
+.msg-ok  { background: var(--green-light); color: var(--green); }
+.msg-err { background: var(--red-light);   color: var(--red);   }
+
+/* ── Modal (bottom sheet) ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,.55);
+  backdrop-filter: blur(3px);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal {
+  background: var(--white);
+  border-radius: var(--r);
+  padding: 24px 20px 20px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  transform: translateY(24px);
+  transition: transform .25s ease;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+
+.modal-overlay.open .modal { transform: translateY(0); }
+
+.modal-icon {
+  width: 44px; height: 44px;
+  background: var(--red-light);
+  border-radius: var(--r-pill);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  margin-bottom: 14px;
+}
+
+.modal-title { font-size: 17px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+.modal-body  { font-size: 14px; color: var(--slate-500); margin-bottom: 22px; line-height: 1.65; }
+
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions .btn { flex: 1; margin-bottom: 0; }
+</style>
+</head>
+<body>
+
+<!-- ── Tab Bar ── -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab('class',this)">班级管理</button>
+  <button class="tab-btn" onclick="showTab('task',this)">作业任务</button>
+  <button class="tab-btn" onclick="showTab('upload',this)">拍照上传</button>
+  <button class="tab-btn" onclick="showTab('report',this)">查看报告</button>
+</div>
+
+<!-- ══ Tab 1: 班级管理 ══ -->
+<div id="tab-class" class="tab-content active">
+
+  <div class="card">
+    <div class="card-title">新建班级</div>
+    <label>班级名称</label>
+    <input id="new-class-name" type="text" placeholder="如：三年级1班">
+    <button class="btn btn-primary" onclick="createClass()">创建班级</button>
+    <div id="class-msg"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">批量导入名单</div>
+    <label>选择班级</label>
+    <select id="class-select" onchange="loadStudents()">
+      <option value="">-- 请选择 --</option>
+    </select>
+    <label>CSV 名单文件</label>
+    <div class="info-box">
+      格式：CSV / TSV，第一行为表头（自动跳过）<br>
+      第一列：学号 &nbsp;·&nbsp; 第二列：姓名<br>
+      示例：<code>20240101,张三</code><br>
+      支持 Excel / WPS 另存为 CSV，UTF-8 / GBK 均可
+    </div>
+    <input type="file" id="names-file" accept=".csv,.tsv,.txt">
+    <button class="btn btn-success" onclick="importStudents()">导入学生名单</button>
+    <div id="import-msg"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">当前名单</div>
+    <div id="student-list"><div class="spinner">请先选择班级</div></div>
+  </div>
+
+</div>
+
+<!-- ══ Tab 2: 作业任务 ══ -->
+<div id="tab-task" class="tab-content">
+
+  <div class="card">
+    <div class="card-title">新建任务</div>
+    <label>选择班级</label>
+    <select id="task-class-select" onchange="loadTasks()">
+      <option value="">-- 请选择 --</option>
+    </select>
+    <label>任务名称</label>
+    <input id="task-subject" type="text" placeholder="如：数学作业、语文试卷">
+    <label>截止日期（可选）</label>
+    <input id="task-due" type="date">
+    <label>备注（可选）</label>
+    <input id="task-notes" type="text" placeholder="备注">
+    <button class="btn btn-primary" onclick="createTask()">创建作业任务</button>
+    <div id="task-msg"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">已有任务</div>
+    <div id="task-list"><div class="spinner">请先选择班级</div></div>
+  </div>
+
+</div>
+
+<!-- ══ Tab 3: 拍照上传 ══ -->
+<div id="tab-upload" class="tab-content">
+
+  <div class="card">
+    <div class="card-title">上传并识别</div>
+    <label>选择班级</label>
+    <select id="upload-class-select">
+      <option value="">-- 请选择 --</option>
+    </select>
+    <label>选择作业任务</label>
+    <select id="upload-task-select">
+      <option value="">-- 请先选择班级 --</option>
+    </select>
+    <label>拍摄或选择照片（作业封面、试卷首页等）</label>
+    <input type="file" id="photo-input" accept="image/*" capture="environment" multiple>
+    <div class="thumb-grid" id="thumb-preview"></div>
+    <button class="btn btn-primary" onclick="uploadAndOcr()">上传并识别</button>
+    <div id="upload-msg"></div>
+    <div id="ocr-result"></div>
+  </div>
+
+</div>
+
+<!-- ══ Tab 4: 查看报告 ══ -->
+<div id="tab-report" class="tab-content">
+
+  <div class="card">
+    <div class="card-title">选择任务</div>
+    <label>选择班级</label>
+    <select id="report-class-select" onchange="loadReportTasks()">
+      <option value="">-- 请选择 --</option>
+    </select>
+    <label>选择作业任务</label>
+    <select id="report-task-select">
+      <option value="">-- 请先选择班级 --</option>
+    </select>
+    <button class="btn btn-outline" onclick="loadReport()">查看报告</button>
+  </div>
+
+  <div id="report-content"></div>
+
+</div>
+
+<!-- ══ 确认 Modal ══ -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <div class="modal-icon">⚠️</div>
+    <div class="modal-title" id="modal-title">确认操作</div>
+    <div class="modal-body"  id="modal-body">确定要继续吗？</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost"   onclick="closeModal()">取消</button>
+      <button class="btn btn-danger"  id="modal-confirm-btn" onclick="confirmModal()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let _modalCb = null;
+
+// ── 工具 ───────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function msg(id, text, ok) {
+  const el = document.getElementById(id);
+  el.innerHTML = `<div class="msg ${ok ? 'msg-ok' : 'msg-err'}">${text}</div>`;
+  setTimeout(() => { el.innerHTML = ''; }, 4000);
+}
+
+async function api(method, path, body) {
+  const opts = { method, headers: {} };
+  if (body instanceof FormData) {
+    opts.body = body;
+  } else if (body) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  }
+  const res = await fetch(API + path, opts);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// ── Modal ────────────────────────────────────
+function openModal(title, body, cb) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').textContent  = body;
+  _modalCb = cb;
+  document.getElementById('confirm-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('confirm-modal').classList.remove('open');
+  _modalCb = null;
+}
+
+function confirmModal() {
+  const cb = _modalCb;
+  closeModal();
+  if (cb) cb();
+}
+
+document.getElementById('confirm-modal').addEventListener('click', e => {
+  if (e.target.id === 'confirm-modal') closeModal();
+});
+
+// ── 初始化班级列表 ───────────────────────────
+async function initClassSelects() {
+  const classes = await api('GET', '/classes');
+  ['class-select','task-class-select','upload-class-select','report-class-select'].forEach(id => {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">-- 请选择 --</option>';
+    classes.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.name;
+      if (c.id == cur) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+// ── Tab 1: 班级管理 ─────────────────────────
+async function createClass() {
+  const name = document.getElementById('new-class-name').value.trim();
+  if (!name) return msg('class-msg', '请输入班级名称', false);
+  try {
+    await api('POST', '/classes', { name });
+    document.getElementById('new-class-name').value = '';
+    await initClassSelects();
+    msg('class-msg', '班级创建成功', true);
+  } catch(e) { msg('class-msg', '创建失败：' + e.message, false); }
+}
+
+async function loadStudents() {
+  const classId = document.getElementById('class-select').value;
+  const el = document.getElementById('student-list');
+  if (!classId) { el.innerHTML = '<div class="spinner">请先选择班级</div>'; return; }
+  try {
+    const list = await api('GET', `/classes/${classId}/students`);
+    if (!list.length) { el.innerHTML = '<div class="spinner">暂无学生，请导入名单</div>'; return; }
+    el.innerHTML = list.map(s => `
+      <div class="student-row">
+        <div><div class="s-name">${s.name}</div></div>
+        <span style="color:var(--slate-500);font-size:13px">${s.student_number || ''}</span>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = '<div class="msg msg-err">加载失败</div>'; }
+}
+
+async function importStudents() {
+  const classId = document.getElementById('class-select').value;
+  const fi = document.getElementById('names-file');
+  if (!classId) return msg('import-msg', '请先选择班级', false);
+  if (!fi.files.length) return msg('import-msg', '请选择 CSV 文件', false);
+  try {
+    const fd = new FormData();
+    fd.append('file', fi.files[0]);
+    const res = await fetch(`${API}/students/import?class_id=${classId}`, { method: 'POST', body: fd });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    fi.value = '';
+    await loadStudents();
+    let tip = `已导入 ${data.added} 名学生`;
+    if (data.skipped?.length) tip += `，跳过 ${data.skipped.length} 行`;
+    msg('import-msg', tip, true);
+  } catch(e) { msg('import-msg', '导入失败：' + e.message, false); }
+}
+
+// ── Tab 2: 作业任务 ─────────────────────────
+async function loadTasks() {
+  const classId = document.getElementById('task-class-select').value;
+  const el = document.getElementById('task-list');
+  if (!classId) { el.innerHTML = '<div class="spinner">请先选择班级</div>'; return; }
+  try {
+    const tasks = await api('GET', `/classes/${classId}/homework_tasks`);
+    if (!tasks.length) { el.innerHTML = '<div class="spinner">暂无任务</div>'; return; }
+    el.innerHTML = tasks.map(t => `
+      <div class="student-row">
+        <div>
+          <div class="s-name">${t.subject}</div>
+          ${t.notes ? `<div class="s-num">${t.notes}</div>` : ''}
+        </div>
+        <span style="color:var(--slate-500);font-size:13px;flex-shrink:0">${t.due_date || ''}</span>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = '<div class="msg msg-err">加载失败</div>'; }
+}
+
+async function createTask() {
+  const classId = document.getElementById('task-class-select').value;
+  if (!classId) return msg('task-msg', '请先选择班级', false);
+  const subject = document.getElementById('task-subject').value.trim();
+  if (!subject) return msg('task-msg', '请输入任务名称', false);
+  try {
+    await api('POST', '/homework_tasks', {
+      class_id: parseInt(classId),
+      subject,
+      due_date:  document.getElementById('task-due').value   || null,
+      notes:     document.getElementById('task-notes').value.trim() || null,
+    });
+    document.getElementById('task-subject').value = '';
+    document.getElementById('task-due').value     = '';
+    document.getElementById('task-notes').value   = '';
+    await loadTasks();
+    msg('task-msg', '作业任务创建成功', true);
+  } catch(e) { msg('task-msg', '创建失败：' + e.message, false); }
+}
+
+// ── Tab 3: 拍照上传 ─────────────────────────
+document.getElementById('upload-class-select').addEventListener('change', async function() {
+  const classId = this.value;
+  const taskSel = document.getElementById('upload-task-select');
+  taskSel.innerHTML = '<option value="">-- 加载中 --</option>';
+  if (!classId) { taskSel.innerHTML = '<option value="">-- 请先选择班级 --</option>'; return; }
+  const tasks = await api('GET', `/classes/${classId}/homework_tasks`);
+  taskSel.innerHTML = '<option value="">-- 请选择任务 --</option>';
+  tasks.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = t.subject + (t.due_date ? ` (${t.due_date})` : '');
+    taskSel.appendChild(opt);
+  });
+});
+
+document.getElementById('photo-input').addEventListener('change', function() {
+  const preview = document.getElementById('thumb-preview');
+  preview.innerHTML = '';
+  Array.from(this.files).forEach(f => {
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(f);
+    preview.appendChild(img);
+  });
+});
+
+async function uploadAndOcr() {
+  const classId = document.getElementById('upload-class-select').value;
+  const taskId  = document.getElementById('upload-task-select').value;
+  const files   = document.getElementById('photo-input').files;
+  const msgEl   = document.getElementById('upload-msg');
+  const ocrEl   = document.getElementById('ocr-result');
+  if (!classId) return msg('upload-msg', '请选择班级', false);
+  if (!taskId)  return msg('upload-msg', '请选择作业任务', false);
+  if (!files.length) return msg('upload-msg', '请选择照片', false);
+
+  msgEl.innerHTML = '<div class="msg msg-ok">上传中...</div>';
+  try {
+    const fd = new FormData();
+    Array.from(files).forEach(f => fd.append('files', f));
+    const res = await fetch(`${API}/images/upload?class_id=${classId}`, { method: 'POST', body: fd });
+    if (!res.ok) throw new Error(await res.text());
+    const images   = await res.json();
+    const imageIds = images.map(i => i.id);
+
+    msgEl.innerHTML = '<div class="msg msg-ok">识别中，请稍候...</div>';
+    const ocrRes = await api('POST', '/ocr/recognize', { task_id: parseInt(taskId), image_ids: imageIds });
+
+    let html = '<div class="card"><div class="card-title">识别结果</div>';
+    ocrRes.forEach(r => {
+      if (r.candidates.length) {
+        r.candidates.forEach(c => {
+          html += `<div class="student-row">
+            <span class="s-name">${c.name}</span>
+            <span class="badge badge-submitted">匹配 ${Math.round(c.confidence*100)}%</span>
+          </div>`;
+        });
+      } else {
+        html += `<div class="msg msg-err" style="margin-top:6px">图片 #${r.image_id} 未识别到学生姓名</div>`;
+      }
+    });
+    html += '</div>';
+    ocrEl.innerHTML = html;
+    msgEl.innerHTML = '<div class="msg msg-ok">完成！请前往「查看报告」查看汇总</div>';
+  } catch(e) {
+    msgEl.innerHTML = '';
+    msg('upload-msg', '失败：' + e.message, false);
+  }
+}
+
+// ── Tab 4: 查看报告 ─────────────────────────
+async function loadReportTasks() {
+  const classId = document.getElementById('report-class-select').value;
+  const taskSel = document.getElementById('report-task-select');
+  if (!classId) { taskSel.innerHTML = '<option value="">-- 请先选择班级 --</option>'; return; }
+  try {
+    const tasks = await api('GET', `/classes/${classId}/homework_tasks`);
+    if (!tasks.length) {
+      taskSel.innerHTML = '<option value="">-- 该班级暂无任务，请先创建 --</option>';
+      return;
+    }
+    taskSel.innerHTML = '<option value="">-- 请选择任务 --</option>';
+    tasks.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id;
+      opt.textContent = t.subject + (t.due_date ? ` (${t.due_date})` : '');
+      taskSel.appendChild(opt);
+    });
+  } catch(e) {
+    taskSel.innerHTML = '<option value="">-- 加载失败 --</option>';
+  }
+}
+
+async function loadReport() {
+  const taskId = document.getElementById('report-task-select').value;
+  const el = document.getElementById('report-content');
+  if (!taskId) { el.innerHTML = '<div class="msg msg-err">请选择作业任务</div>'; return; }
+  el.innerHTML = '<div class="spinner">加载中...</div>';
+  try {
+    const report = await api('GET', `/reports/homework/${taskId}`);
+    const pct = report.total > 0 ? Math.round(report.submitted_count / report.total * 100) : 0;
+
+    let html = `
+      <div class="stat-card">
+        <div class="stat-numbers">
+          <span class="stat-main">${report.submitted_count}</span>
+          <span class="stat-denom">/ ${report.total} 人已交</span>
+        </div>
+        <div class="stat-label">未交 ${report.missing_count} 人 &nbsp;·&nbsp; 完成率 ${pct}%</div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:${pct}%"></div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-outline" onclick="downloadReport(${taskId})">⬇ 导出 CSV</button>
+        <button class="btn btn-danger"  onclick="confirmClear(${taskId})">✕ 清除记录</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">提交详情</div>`;
+
+    report.entries.forEach(e => {
+      const cls  = e.status === 'submitted' ? 'badge-submitted' : (e.status === 'pending' ? 'badge-pending' : 'badge-missing');
+      const text = e.status === 'submitted' ? '✓ 已交'         : (e.status === 'pending' ? '? 待确认'       : '✗ 未交');
+      html += `
+        <div class="student-row">
+          <span class="s-name">${e.name}</span>
+          <div class="s-right">
+            <span class="badge ${cls}">${text}</span>
+            <button
+              class="btn btn-ghost btn-sm"
+              onclick="toggleStatus(${report.task_id},${e.student_id},'${e.status}',${e.image_id||'null'})"
+            >改</button>
+          </div>
+        </div>`;
+    });
+
+    html += '</div>';
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = `<div class="msg msg-err">加载失败：${e.message}</div>`;
+  }
+}
+
+function downloadReport(taskId) {
+  window.location.href = `${API}/reports/homework/${taskId}/download`;
+}
+
+function confirmClear(taskId) {
+  openModal(
+    '清除提交记录',
+    '将删除此任务的全部提交记录（含 OCR 识别和手动确认），清除后可重新识别。此操作不可撤销。',
+    () => clearSubmissions(taskId)
+  );
+}
+
+async function clearSubmissions(taskId) {
+  try {
+    await api('DELETE', `/submissions/task/${taskId}`);
+    await loadReport();
+  } catch(e) { alert('清除失败：' + e.message); }
+}
+
+async function toggleStatus(taskId, studentId, currentStatus, imageId) {
+  const next = currentStatus === 'submitted' ? 'missing' : 'submitted';
+  try {
+    await api('POST', '/submissions/confirm', {
+      task_id: taskId, student_id: studentId, status: next, image_id: imageId,
+    });
+    await loadReport();
+  } catch(e) { alert('操作失败：' + e.message); }
+}
+
+// ── 初始化 ──────────────────────────────────
+initClassSelects();
+</script>
+</body>
+</html>
