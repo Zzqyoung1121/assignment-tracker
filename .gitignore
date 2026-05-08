@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+*.egg-info/
+
+# Environment
+.env
+
+# Database & uploads
+backend/data/app.db
+backend/data/images/
+
+# Claude Code session logs
+*.txt
+
+# OS
+.DS_Store
+Thumbs.db
