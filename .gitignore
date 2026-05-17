@@ -13,6 +13,9 @@ __pycache__/
 backend/data/app.db
 backend/data/images/
 
+# Large files
+ocr_service.zip
+
 # Claude Code session logs
 *.txt
 
